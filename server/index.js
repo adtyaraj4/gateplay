@@ -21,7 +21,7 @@ const PORT = process.env.PORT || 5000;
 
 // ── Security & parsing ─────────────────────────────────────────
 app.use(helmet({
-  contentSecurityPolicy: false,   // disabled so Clerk scripts load correctly
+  contentSecurityPolicy: false,
 }));
 
 app.use(cors({
@@ -42,7 +42,6 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // ── Serve frontend static files ────────────────────────────────
-// The entire /public directory is the built frontend.
 app.use(express.static(path.join(__dirname, '..', 'public'), {
   maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,
 }));
@@ -87,15 +86,18 @@ app.use((err, _req, res, _next) => {
   });
 });
 
-// ── Start ──────────────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`
+// ── Only listen when running locally (not on Vercel) ──────────
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`
   ╔══════════════════════════════════════════╗
   ║   🎬  GatePlay API Server                ║
   ║   http://localhost:${PORT}                   ║
   ║   ENV: ${(process.env.NODE_ENV || 'development').padEnd(34)}║
   ╚══════════════════════════════════════════╝
-  `);
-});
+    `);
+  });
+}
 
+// ── Export for Vercel serverless ───────────────────────────────
 module.exports = app;
