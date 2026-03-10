@@ -42,5 +42,8 @@ module.exports = async function handler(req, res) {
   res.json({ user: data });
 };
 
-console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? 'loaded' : 'MISSING');
-console.log('SUPABASE_SERVICE_KEY:', process.env.SUPABASE_SERVICE_KEY ? 'loaded' : 'MISSING');
+console.log('ENV CHECK:', {
+  url: process.env.SUPABASE_URL ? 'OK' : 'MISSING',
+  key: process.env.SUPABASE_SERVICE_KEY ? 'OK' : 'MISSING',
+  clerk: process.env.CLERK_SECRET_KEY ? 'OK' : 'MISSING'
+});
