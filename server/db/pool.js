@@ -1,21 +1,15 @@
-const { Pool } = require('pg');
+// server/db/pool.js
+'use strict';
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL environment variable is required');
-}
+require('dotenv').config();
+const { Pool } = require('pg');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  max: 20,              // max pool size
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-});
-
-pool.on('connect', () => {
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('[DB] New client connected to PostgreSQL');
-  }
+  ssl: { rejectUnauthorized: false },   // required for Supabase
+  max: 10,
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 5_000,
 });
 
 pool.on('error', (err) => {
@@ -23,20 +17,30 @@ pool.on('error', (err) => {
 });
 
 /**
- * Helper: run a query with automatic client release.
- * @param {string} text   - SQL query string
- * @param {Array}  params - parameterised values
+ * Run a parameterised query.
+ * @param {string} text   SQL string with $1, $2 … placeholders
+ * @param {any[]}  params Values for placeholders
  */
-pool.query = (function (originalQuery) {
-  return async function (text, params) {
-    const start = Date.now();
-    const result = await originalQuery.call(pool, text, params);
-    const duration = Date.now() - start;
-    if (process.env.NODE_ENV !== 'production' && duration > 500) {
-      console.warn(`[DB] Slow query (${duration}ms):`, text.slice(0, 80));
+async function query(text, params = []) {
+  const start = Date.now();
+  try {
+    const result = await pool.query(text, params);
+    const ms = Date.now() - start;
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[DB] ${ms}ms | rows=${result.rowCount} | ${text.slice(0, 80)}`);
     }
     return result;
-  };
-})(pool.query);
+  } catch (err) {
+    console.error('[DB] Query error:', err.message, '\nSQL:', text);
+    throw err;
+  }
+}
 
-module.exports = pool;
+/**
+ * Grab a dedicated client for transactions.
+ */
+async function getClient() {
+  return pool.connect();
+}
+
+module.exports = { query, getClient, pool };

@@ -1,31 +1,45 @@
-const router = require('express').Router();
+// server/routes/auth.js
+'use strict';
+
+const express = require('express');
+const router  = express.Router();
 const { requireAuth } = require('../middleware/auth');
-const pool = require('../db/pool');
+const { query }       = require('../db/pool');
 
 /**
  * GET /api/auth/me
- * Returns the authenticated user's profile + role from DB.
+ * ─────────────────
+ * Returns the currently authenticated user's profile + role.
+ * The frontend calls this on every load to sync the UI.
+ *
+ * 200 → { user: { id, clerk_id, email, role, upgraded_at, created_at } }
+ * 401 → No / invalid token
  */
 router.get('/me', requireAuth, (req, res) => {
-  const { id, clerk_id, email, role, created_at, updated_at } = req.dbUser;
-  res.json({ id, clerk_id, email, role, created_at, updated_at });
+  const { id, clerk_id, email, role, upgraded_at, created_at } = req.dbUser;
+  return res.status(200).json({
+    user: { id, clerk_id, email, role, upgraded_at, created_at },
+  });
 });
 
 /**
  * DELETE /api/auth/me
- * Resets the current user's account back to the free tier (for testing).
+ * ────────────────────
+ * Soft-deletes the current user's data (sets role back to free, clears logs).
+ * Useful for testing / GDPR.
+ *
+ * 200 → { message }
  */
-router.delete('/me', requireAuth, async (req, res, next) => {
+router.delete('/me', requireAuth, async (req, res) => {
   try {
-    const { rows } = await pool.query(
-      `UPDATE users SET role = 'free', updated_at = NOW()
-       WHERE clerk_id = $1 RETURNING id, email, role`,
-      [req.auth.sub]
+    await query(
+      `UPDATE users SET role = 'free', upgraded_at = NULL, updated_at = NOW() WHERE clerk_id = $1`,
+      [req.dbUser.clerk_id]
     );
-    if (!rows.length) return res.status(404).json({ error: 'User not found' });
-    res.json({ message: 'Account reset to free tier', user: rows[0] });
+    return res.status(200).json({ message: 'Account reset to free tier.' });
   } catch (err) {
-    next(err);
+    console.error('[DELETE /auth/me]', err.message);
+    return res.status(500).json({ error: 'Failed to reset account.' });
   }
 });
 
