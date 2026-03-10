@@ -135,7 +135,6 @@
       <button class="filter-tab" onclick="filterMovies('sci-fi',this)">Sci-Fi</button>
     </div>
   </div>
-  <!-- Skeleton -->
   <div class="movies-section" id="movies-skeleton">
     <div class="movies-section-label">Loading</div>
     <div class="movies-grid">
@@ -242,7 +241,6 @@
   <div class="modal-card" style="width:500px">
     <button class="modal-close" onclick="closeUpgradeModal()">✕</button>
     <div class="modal-logo">GATE<span>PLAY</span> <span style="font-size:14px;color:rgba(245,197,24,0.8);letter-spacing:2px">PREMIUM</span></div>
-    <!-- Plan selection -->
     <div id="upgrade-view-select">
       <div style="text-align:center;margin-bottom:24px">
         <div class="section-label" style="justify-content:center;margin-bottom:8px">Choose Your Plan</div>
@@ -264,7 +262,6 @@
         </div>
       </div>
     </div>
-    <!-- Payment form -->
     <div id="upgrade-view-payment" style="display:none">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
         <button onclick="document.getElementById('upgrade-view-select').style.display='';document.getElementById('upgrade-view-payment').style.display='none'" style="background:none;border:none;color:rgba(245,245,245,0.45);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;letter-spacing:1px;padding:0">← Back</button>
@@ -272,7 +269,6 @@
           <span id="payment-plan-name">Plus</span> — <span id="payment-plan-price" style="color:var(--red)">$12.99/mo</span>
         </div>
       </div>
-      <!-- Card preview -->
       <div style="background:linear-gradient(135deg,#1a1a1a 0%,#2a1a1a 50%,#1a1a2a 100%);border:1px solid rgba(232,25,44,0.2);border-radius:12px;padding:20px 24px;margin-bottom:20px;position:relative;overflow:hidden">
         <div style="position:absolute;top:0;right:0;width:160px;height:160px;background:radial-gradient(circle,rgba(232,25,44,0.08) 0%,transparent 70%);pointer-events:none"></div>
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
@@ -295,8 +291,7 @@
         <div class="field-group">
           <div class="field-label">Cardholder Name</div>
           <div class="field-input-wrap">
-            <input class="field-input" id="card-name" type="text" placeholder="John Smith"
-              oninput="document.getElementById('card-preview-name').textContent=this.value.toUpperCase()||'YOUR NAME'">
+            <input class="field-input" id="card-name" type="text" placeholder="John Smith" oninput="document.getElementById('card-preview-name').textContent=this.value.toUpperCase()||'YOUR NAME'">
             <span class="field-icon">👤</span>
           </div>
         </div>
@@ -335,7 +330,6 @@
         </button>
       </div>
     </div>
-    <!-- Success (just upgraded) -->
     <div id="upgrade-view-success" style="display:none;text-align:center;padding:16px 0">
       <div style="font-size:56px;margin-bottom:16px">🎉</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;margin-bottom:8px">Welcome to Premium!</div>
@@ -344,15 +338,12 @@
         Browse All Movies <span class="arrow">→</span>
       </button>
     </div>
-    <!-- Already premium -->
     <div id="upgrade-view-already" style="display:none;text-align:center;padding:20px 0 8px">
       <div style="font-size:64px;margin-bottom:20px;filter:drop-shadow(0 0 24px rgba(245,197,24,0.4))">👑</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:3px;margin-bottom:10px;background:linear-gradient(135deg,#f5c518,#e8921a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
         You're Already Premium
       </div>
-      <p style="color:rgba(245,245,245,0.5);font-size:14px;line-height:1.6;margin-bottom:8px">
-        Your membership is active and all content is unlocked.
-      </p>
+      <p style="color:rgba(245,245,245,0.5);font-size:14px;line-height:1.6;margin-bottom:8px">Your membership is active and all content is unlocked.</p>
       <div id="already-premium-email" style="font-size:12px;color:rgba(245,197,24,0.5);letter-spacing:1px;margin-bottom:32px"></div>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
         <button class="btn-primary" onclick="closeUpgradeModal();setTimeout(()=>document.getElementById('movies-section').scrollIntoView({behavior:'smooth'}),200)" style="margin:0">
@@ -395,16 +386,8 @@
 </style>
 
 <script>
-// ═══════════════════════════════════════════════════════════════
-//  GatePlay — Frontend JavaScript
-//  Clerk JWT auth → Express/Supabase backend
-// ═══════════════════════════════════════════════════════════════
-
-const API = '';   // same origin — Express serves both
-
-// ── State ─────────────────────────────────────────────────────
+const API = '';
 const STATE = { user: null, token: null };
-
 let allMoviesData = [];
 let moviesLoaded  = false;
 
@@ -427,16 +410,16 @@ async function apiFetch(path, opts = {}) {
   }
 }
 
-// ── Nav UI ─────────────────────────────────────────────────────
+// ── Nav UI ────────────────────────────────────────────────────
 function updateNavUI() {
-  const guest     = document.getElementById('nav-guest');
-  const userInfo  = document.getElementById('nav-user-info');
-  const logoutBtn = document.getElementById('nav-logout-btn');
-  const navName   = document.getElementById('nav-name');
-  const navAvatar = document.getElementById('nav-avatar');
-  const roleBadge = document.getElementById('nav-role-badge');
-  const menuEmail = document.getElementById('menu-email');
-  const menuRole  = document.getElementById('menu-role');
+  const guest        = document.getElementById('nav-guest');
+  const userInfo     = document.getElementById('nav-user-info');
+  const logoutBtn    = document.getElementById('nav-logout-btn');
+  const navName      = document.getElementById('nav-name');
+  const navAvatar    = document.getElementById('nav-avatar');
+  const roleBadge    = document.getElementById('nav-role-badge');
+  const menuEmail    = document.getElementById('menu-email');
+  const menuRole     = document.getElementById('menu-role');
   const menuAvatarLg = document.getElementById('menu-avatar-lg');
   const menuNameLg   = document.getElementById('menu-name-lg');
   const upgradeBtn   = document.getElementById('menu-upgrade-btn');
@@ -457,7 +440,7 @@ function updateNavUI() {
 
     const isPremium = STATE.user.role === 'premium';
     if (menuRole) {
-      menuRole.textContent = isPremium ? '👑 Premium Member' : 'Free Plan';
+      menuRole.textContent      = isPremium ? '👑 Premium Member' : 'Free Plan';
       menuRole.style.background = isPremium ? 'rgba(245,197,24,0.12)' : 'rgba(255,255,255,0.05)';
       menuRole.style.color      = isPremium ? 'rgba(245,197,24,0.9)'  : 'rgba(245,245,245,0.4)';
       menuRole.style.border     = isPremium ? '1px solid rgba(245,197,24,0.25)' : '1px solid rgba(255,255,255,0.08)';
@@ -520,7 +503,7 @@ function closeUserMenu() {
   if (c) c.style.transform = 'rotate(0deg)';
 }
 function scheduleCloseUserMenu() { _menuCloseTimer = setTimeout(closeUserMenu, 120); }
-function cancelCloseUserMenu() { if (_menuCloseTimer) { clearTimeout(_menuCloseTimer); _menuCloseTimer = null; } }
+function cancelCloseUserMenu()   { if (_menuCloseTimer) { clearTimeout(_menuCloseTimer); _menuCloseTimer = null; } }
 document.addEventListener('click', e => {
   if (!e.target.closest('#user-menu') && !e.target.closest('#nav-user-info')) closeUserMenu();
 });
@@ -574,7 +557,7 @@ async function logout() {
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeUpgradeModal(); } });
 
-// ── Movies ────────────────────────────────────────────────────
+// ── Movies data ───────────────────────────────────────────────
 const DEMO_MOVIES = [
   { id:'m001', title:'Vikings',                  genre:'Drama',     year:2013, rating:4.5, type:'free',    duration:'45 min',  poster:'https://image.tmdb.org/t/p/w500/aA9N1B9xyYBxoW3T2h4oBxP0TQK.jpg' },
   { id:'m002', title:'Breaking Bad',             genre:'Crime',     year:2008, rating:5.0, type:'premium', duration:'47 min',  poster:'https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg' },
@@ -623,7 +606,7 @@ function movieCardHTML(m) {
   const lockOverlay = `<div class="mv-lock"><div class="mv-lock-icon">👑</div><div class="mv-lock-label">Premium</div><div class="mv-lock-cta">${STATE.user ? 'Click to upgrade' : 'Sign in to watch'}</div></div>`;
   const playOverlay = `<div class="mv-play-overlay">▶</div>`;
   return `
-    <div class="movie-card" data-title="${m.title}" data-type="${m.type}" onclick="handleMovieClick('${m.id}','${m.type}','${(m.title||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">
+    <div class="movie-card" onclick="handleMovieClick('${m.id}','${m.type}','${(m.title||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">
       <div class="movie-poster-wrap">
         <img src="${m.poster}" alt="${m.title}" loading="lazy" onerror="this.parentElement.style.background='linear-gradient(135deg,#1a0a2e,#6b21a8)';this.remove()">
         <div class="poster-grad"></div>
@@ -648,7 +631,6 @@ async function handleMovieClick(id, type, title) {
     showToast('🔒 This is premium content. Upgrade to Premium to watch.', 'error');
     showUpgradePrompt(title); return;
   }
-  // Skip the /api/movies/:id/play backend call — show player directly
   showToast(`🎬 Now playing: ${title}`, 'success');
   showMoviePlayer(id, title, type);
 }
@@ -671,10 +653,10 @@ function showUpgradePrompt(title) {
 function showMoviePlayer(id, title, type) {
   document.getElementById('movie-player-modal')?.remove();
   const movie = allMoviesData.find(m => String(m.id) === String(id)) || { title, poster:'', rating:'', genre:'', year:'', duration:'' };
-  const modal = document.createElement('div');
-  modal.id = 'movie-player-modal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.95);backdrop-filter:blur(12px);font-family:"DM Sans",sans-serif';
-  modal.innerHTML = `
+  const m = document.createElement('div');
+  m.id = 'movie-player-modal';
+  m.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.95);backdrop-filter:blur(12px);font-family:"DM Sans",sans-serif';
+  m.innerHTML = `
     <div style="background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);max-width:780px;width:95%;position:relative">
       <button onclick="document.getElementById('movie-player-modal').remove()" style="position:absolute;top:14px;right:16px;z-index:10;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.15);color:#fff;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
       <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,#0d0d1a,#1a0a2e,#0d0d0d);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
@@ -696,8 +678,8 @@ function showMoviePlayer(id, title, type) {
         </div>
       </div>
     </div>`;
-  document.body.appendChild(modal);
-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(m);
+  m.addEventListener('click', e => { if (e.target === m) m.remove(); });
   setTimeout(() => { const b = document.getElementById('fake-progress'); if (b) b.style.width='35%'; }, 600);
 }
 
@@ -733,8 +715,6 @@ function openUpgradeModal() {
   if (!STATE.user) { openModal('login'); showToast('Sign in to unlock Premium.', 'info'); return; }
   document.getElementById('upgrade-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
-
-  // Already premium — show the "you already have premium" screen
   if (STATE.user.role === 'premium') {
     document.getElementById('upgrade-view-select').style.display  = 'none';
     document.getElementById('upgrade-view-payment').style.display = 'none';
@@ -744,7 +724,6 @@ function openUpgradeModal() {
     if (emailEl) emailEl.textContent = STATE.user.email || '';
     return;
   }
-
   document.getElementById('upgrade-view-select').style.display  = '';
   document.getElementById('upgrade-view-payment').style.display = 'none';
   document.getElementById('upgrade-view-success').style.display = 'none';
@@ -754,22 +733,13 @@ function openUpgradeModal() {
 function closeUpgradeModal() {
   document.getElementById('upgrade-modal').classList.remove('open');
   document.body.style.overflow = '';
-
-  // Reset card fields
   ['card-name','card-number','card-exp','card-cvc'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-  const pn=document.getElementById('card-preview-name'); if(pn) pn.textContent='YOUR NAME';
+  const pn=document.getElementById('card-preview-name');   if(pn)   pn.textContent='YOUR NAME';
   const pnum=document.getElementById('card-preview-number'); if(pnum) pnum.textContent='•••• •••• •••• ••••';
-  const pexp=document.getElementById('card-preview-exp'); if(pexp) pexp.textContent='MM / YY';
-  const logo=document.getElementById('card-network-logo'); if(logo) logo.innerHTML='';
-
-  // Reset pay button — critical: clears the "Processing..." stuck state
+  const pexp=document.getElementById('card-preview-exp');   if(pexp) pexp.textContent='MM / YY';
+  const logo=document.getElementById('card-network-logo');  if(logo) logo.innerHTML='';
   const btn = document.getElementById('pay-btn');
-  if (btn) {
-    btn.disabled = false;
-    btn.innerHTML = '🔒 Confirm & Pay <span id="pay-btn-amount">$12.99</span> →';
-  }
-
-  // Hide all views — openUpgradeModal will show the correct one
+  if (btn) { btn.disabled=false; btn.innerHTML='🔒 Confirm & Pay <span id="pay-btn-amount">$12.99</span> →'; }
   document.getElementById('upgrade-view-select').style.display  = 'none';
   document.getElementById('upgrade-view-payment').style.display = 'none';
   document.getElementById('upgrade-view-success').style.display = 'none';
@@ -800,20 +770,15 @@ async function submitPayment() {
   btn.disabled = true;
   btn.innerHTML = '<span style="display:flex;align-items:center;justify-content:center;gap:8px"><span style="width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block"></span> Processing…</span>';
 
-  // Simulate processing delay
   await new Promise(r => setTimeout(r, 1800));
 
-  // Try to save to Supabase — but don't block success on it
   try {
-    await apiFetch('/api/payment/upgrade', {
-      method: 'POST',
-      body: JSON.stringify({ plan: selectedPlan.name, amount: selectedPlan.price }),
-    });
-  } catch (e) {
-    console.warn('Supabase save failed silently:', e);
+    // Save premium to Clerk — persists across all logins forever
+    await window.Clerk.user.update({ unsafeMetadata: { role: 'premium' } });
+  } catch(e) {
+    console.warn('Clerk update failed:', e);
   }
 
-  // Always grant premium regardless of backend response
   STATE.user.role = 'premium';
   updateNavUI();
   document.getElementById('upgrade-view-payment').style.display = 'none';
@@ -823,7 +788,7 @@ async function submitPayment() {
   fetchAndRenderMovies();
 }
 
-// Card formatting
+// ── Card formatting ───────────────────────────────────────────
 function formatCardNumber(inp) {
   const prev = inp.value.length;
   const raw  = inp.value.replace(/\D/g,'').slice(0,16);
@@ -883,30 +848,26 @@ window.addEventListener('load', async () => {
 
     const syncUser = async (clerkUser) => {
       if (!clerkUser) { STATE.user = null; STATE.token = null; updateNavUI(); return; }
+
       const appUser = {
         id:     clerkUser.id,
         email:  clerkUser.primaryEmailAddress?.emailAddress || '',
         name:   [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || null,
         avatar: clerkUser.imageUrl || null,
-        role:   'free',
+        // Read premium status from Clerk — persists across all logins forever
+        role:   clerkUser.unsafeMetadata?.role || 'free',
       };
+
       STATE.user = appUser;
       STATE.token = '__clerk__';
       updateNavUI();
 
-      // Fetch real role from our backend
-      const { ok, data } = await apiFetch('/api/auth/me');
-      if (ok && data.user) {
-        STATE.user = { ...appUser, ...data.user };
-        updateNavUI();
-      }
-
+      // Only show welcome toast when signing in (modal was open)
       if (modal.classList.contains('open')) {
         closeModal();
         showToast(`Welcome${appUser.name ? ', ' + appUser.name : ''} to GatePlay! 🎬`, 'success');
       }
 
-      // Reload movies to apply correct lock/unlock state
       moviesLoaded = false;
       fetchAndRenderMovies();
     };
@@ -918,7 +879,6 @@ window.addEventListener('load', async () => {
 
   } catch(e) { console.error('[Clerk init]', e); updateNavUI(); }
 
-  // Always load movies on page start
   if (!moviesLoaded) fetchAndRenderMovies();
 });
 </script>
