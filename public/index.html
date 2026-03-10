@@ -791,26 +791,33 @@ async function submitPayment() {
   const cardNum  = document.getElementById('card-number').value.replace(/\s/g,'');
   const cardExp  = document.getElementById('card-exp').value.trim();
   const cardCvc  = document.getElementById('card-cvc').value.trim();
-  if (!cardName)           { showToast('Enter the cardholder name.', 'error'); return; }
-  if (cardNum.length < 4)  { showToast('Enter a card number.', 'error'); return; }
-  if (!cardExp)            { showToast('Enter an expiry date.', 'error'); return; }
-  if (cardCvc.length < 3)  { showToast('Enter the CVC.', 'error'); return; }
+  if (!cardName)          { showToast('Enter the cardholder name.', 'error'); return; }
+  if (cardNum.length < 4) { showToast('Enter a card number.', 'error'); return; }
+  if (!cardExp)           { showToast('Enter an expiry date.', 'error'); return; }
+  if (cardCvc.length < 3) { showToast('Enter the CVC.', 'error'); return; }
 
   const btn = document.getElementById('pay-btn');
   btn.disabled = true;
   btn.innerHTML = '<span style="display:flex;align-items:center;justify-content:center;gap:8px"><span style="width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block"></span> Processing…</span>';
 
-  // Simulate processing delay then always succeed
-  await new Promise(r => setTimeout(r, 1800));
+  const { ok, data } = await apiFetch('/api/payment/upgrade', {
+    method: 'POST',
+    body: JSON.stringify({ plan: selectedPlan.name, amount: selectedPlan.price }),
+  });
 
-  // Grant premium locally — no backend needed
+  if (!ok) {
+    btn.disabled = false;
+    btn.innerHTML = `🔒 Confirm & Pay $${selectedPlan.price} →`;
+    showToast(data.error || 'Payment failed. Try again.', 'error');
+    return;
+  }
+
   STATE.user.role = 'premium';
+  if (data.user) STATE.user = { ...STATE.user, ...data.user };
   updateNavUI();
-
   document.getElementById('upgrade-view-payment').style.display = 'none';
   document.getElementById('upgrade-view-success').style.display = '';
   showToast('👑 Welcome to Premium! Enjoy all content.', 'success');
-
   moviesLoaded = false;
   fetchAndRenderMovies();
 }
