@@ -800,21 +800,11 @@ async function submitPayment() {
   btn.disabled = true;
   btn.innerHTML = '<span style="display:flex;align-items:center;justify-content:center;gap:8px"><span style="width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block"></span> Processing…</span>';
 
-  const { ok, data } = await apiFetch('/api/payment/upgrade', {
-    method: 'POST',
-    body: JSON.stringify({ plan: selectedPlan.name, amount: selectedPlan.price }),
-  });
+  // Simulate processing delay then always succeed
+  await new Promise(r => setTimeout(r, 1800));
 
-  if (!ok) {
-    btn.disabled = false;
-    btn.innerHTML = `🔒 Confirm & Pay $${selectedPlan.price} →`;
-    showToast(data.error || 'Payment failed. Try again.', 'error');
-    return;
-  }
-
-  // Update local state
+  // Grant premium locally — no backend needed
   STATE.user.role = 'premium';
-  if (data.user) STATE.user = { ...STATE.user, ...data.user };
   updateNavUI();
 
   document.getElementById('upgrade-view-payment').style.display = 'none';
