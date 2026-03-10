@@ -1,4 +1,4 @@
-# GatePlay
+# GatePlay : https://gateplay-lovat.vercel.app
 
 GatePlay is a serverless movie streaming platform built with a Vanilla HTML/CSS/JS frontend and an Express.js backend. It integrates Clerk for secure user authentication and utilizes Supabase (PostgreSQL) for data management, all optimized for seamless Vercel deployment.
 
