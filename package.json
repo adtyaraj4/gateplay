@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "GatePlay streaming platform — Node.js + Clerk + Supabase",
   "main": "server/index.js",
+  "type": "module",
   "scripts": {
     "start": "node server/index.js",
     "dev": "nodemon server/index.js"
@@ -21,13 +22,3 @@
     "nodemon": "^3.1.4"
   }
 }
-
-{
-  "name": "gateplay",
-  "type": "module",
-  ...
-}
-
-SUPABASE_URL        = https://jxelwpncnligbnjdowva.supabase.co
-SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4ZWx3cG5jbmxpZ2JuamRvd3ZhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzA2NDUxNywiZXhwIjoyMDg4NjQwNTE3fQ.rdVDetd6nh2iWM5miJzGdZPEXL4FdaFAQX5ZZKODRq0
-CLERK_SECRET_KEY=sk_test_igGrtVIpwSgC65rm4BfLkNDLLrb1boaCJSamStwdaa
