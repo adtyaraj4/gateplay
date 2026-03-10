@@ -41,3 +41,6 @@ module.exports = async function handler(req, res) {
   if (error) return res.status(500).json({ error: error.message });
   res.json({ user: data });
 };
+
+console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? 'loaded' : 'MISSING');
+console.log('SUPABASE_SERVICE_KEY:', process.env.SUPABASE_SERVICE_KEY ? 'loaded' : 'MISSING');
