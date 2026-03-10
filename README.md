@@ -1,6 +1,6 @@
 # GatePlay
 
-GatePlay is a thoughtfully curated movie streaming platform prioritizing meaningful storytelling over algorithmic noise. It is built with a flexible Express.js backend and a sleek, modern vanilla frontend.
+GatePlay is a serverless movie streaming platform built with a Vanilla HTML/CSS/JS frontend and an Express.js backend. It integrates Clerk for secure user authentication and utilizes Supabase (PostgreSQL) for data management, all optimized for seamless Vercel deployment.
 
 ## Tech Stack
 - **Frontend**: HTML5, Vanilla JavaScript, CSS3
