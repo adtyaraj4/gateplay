@@ -1,120 +1,71 @@
-// server/middleware/auth.js
-'use strict';
+const { createClerkClient } = require('@clerk/backend');
+const pool = require('../db/pool');
 
-const Clerk = require('@clerk/clerk-sdk-node');
-const { query } = require('../db/pool');
+const clerk = createClerkClient({
+  secretKey: process.env.CLERK_SECRET_KEY,
+});
 
 /**
  * requireAuth
- * ───────────
- * Verifies the Clerk JWT in the Authorization header.
- * Attaches `req.auth` (Clerk session claims) and `req.dbUser` (our DB row).
- *
- * If the user doesn't yet exist in our DB, we auto-create them with role='free'.
- *
- * Returns 401 if no/invalid token, 500 on unexpected errors.
+ * Verifies the Clerk Bearer JWT, upserts the user into the `users` table,
+ * and attaches `req.auth` (Clerk payload) and `req.dbUser` (DB row) to the request.
  */
 async function requireAuth(req, res, next) {
   try {
-    // 1. Extract Bearer token
-    const authHeader = req.headers.authorization || '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-
-    if (!token) {
-      return res.status(401).json({ error: 'No token provided. Please sign in.' });
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Missing or malformed Authorization header' });
     }
 
-    // 2. Verify with Clerk
+    const token = authHeader.split(' ')[1];
+
+    // Verify token with Clerk
     let payload;
     try {
-      payload = await Clerk.verifyToken(token, {
-        secretKey: process.env.CLERK_SECRET_KEY,
-      });
-    } catch (err) {
-      return res.status(401).json({ error: 'Invalid or expired session. Please sign in again.' });
+      payload = await clerk.verifyToken(token);
+    } catch {
+      return res.status(401).json({ error: 'Invalid or expired token' });
     }
 
+    req.auth = payload;
+
+    // Upsert user in our DB (first login creates the row)
     const clerkId = payload.sub;
-    const email   = payload.email
-      || (payload.email_addresses && payload.email_addresses[0]?.email_address)
-      || 'unknown@gateplay.io';
+    const email = payload.email ?? payload['email_address'] ?? null;
 
-    req.auth = { clerkId, email, payload };
-
-    // 3. Upsert user in our DB (idempotent)
-    const upsert = await query(
-      `INSERT INTO users (clerk_id, email, role)
-       VALUES ($1, $2, 'free')
-       ON CONFLICT (clerk_id) DO UPDATE
-         SET email      = EXCLUDED.email,
-             updated_at = NOW()
+    const { rows } = await pool.query(
+      `INSERT INTO users (clerk_id, email, role, created_at)
+       VALUES ($1, $2, 'free', NOW())
+       ON CONFLICT (clerk_id)
+       DO UPDATE SET email = EXCLUDED.email, updated_at = NOW()
        RETURNING *`,
       [clerkId, email]
     );
 
-    req.dbUser = upsert.rows[0];
+    req.dbUser = rows[0];
     next();
   } catch (err) {
-    console.error('[requireAuth]', err.message);
-    return res.status(500).json({ error: 'Authentication service error.' });
+    console.error('[requireAuth] Error:', err.message);
+    next(err);
   }
 }
 
 /**
  * requirePremium
- * ──────────────
- * Must run AFTER requireAuth.
- * Blocks users whose role is not 'premium'.
- * Returns 403 with an upgrade hint.
+ * Must run AFTER requireAuth. Returns 403 if the user is not premium.
  */
 function requirePremium(req, res, next) {
   if (!req.dbUser) {
-    return res.status(401).json({ error: 'Not authenticated.' });
+    return res.status(401).json({ error: 'Not authenticated' });
   }
   if (req.dbUser.role !== 'premium') {
     return res.status(403).json({
-      error: 'Premium subscription required.',
-      hint: 'Upgrade to Premium at /api/payment/upgrade',
-      currentRole: req.dbUser.role,
+      error: 'Premium subscription required',
+      upgrade: true,
+      message: 'Upgrade to GatePlay Premium to access this content.',
     });
   }
   next();
 }
 
-/**
- * optionalAuth
- * ────────────
- * Like requireAuth but never blocks the request.
- * Sets req.auth and req.dbUser if a valid token is present, otherwise leaves them undefined.
- * Useful for public routes that behave differently for logged-in users.
- */
-async function optionalAuth(req, res, next) {
-  try {
-    const authHeader = req.headers.authorization || '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-    if (!token) return next();
-
-    let payload;
-    try {
-      payload = await Clerk.verifyToken(token, {
-        secretKey: process.env.CLERK_SECRET_KEY,
-      });
-    } catch { return next(); }
-
-    const clerkId = payload.sub;
-    const email   = payload.email || 'unknown@gateplay.io';
-    req.auth = { clerkId, email, payload };
-
-    const upsert = await query(
-      `INSERT INTO users (clerk_id, email, role)
-       VALUES ($1, $2, 'free')
-       ON CONFLICT (clerk_id) DO UPDATE SET email = EXCLUDED.email, updated_at = NOW()
-       RETURNING *`,
-      [clerkId, email]
-    );
-    req.dbUser = upsert.rows[0];
-  } catch { /* intentionally silent */ }
-  next();
-}
-
-module.exports = { requireAuth, requirePremium, optionalAuth };
+module.exports = { requireAuth, requirePremium };

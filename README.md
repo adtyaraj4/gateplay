@@ -1,81 +1,110 @@
-# 🎬 GatePlay — Full Stack Streaming Platform
+# 🎬 GatePlay — Full-Stack Streaming Platform
 
-**Node.js + Express + Clerk Auth + Supabase PostgreSQL**
+> **Node.js · Express · Clerk Auth · Supabase PostgreSQL · Vercel**
+
+GatePlay is a production-ready streaming platform template featuring JWT authentication, role-based access control (free/premium), simulated payments, and a full content-access analytics pipeline.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/adtyaraj4/gateplay)
 
 ---
 
-## Project Structure
+## ✨ Features
+
+| | |
+|---|---|
+| 🔐 Clerk JWT Auth | Sign in with Google or email — zero session management |
+| 🎭 Role-Based Access | `free` / `premium` / `admin` tiers enforced server-side |
+| 🗄️ Supabase PostgreSQL | Persistent users, movies, payments & access logs |
+| 💳 Simulated Payments | Monthly ($9.99) or yearly ($79.99) upgrade flow |
+| 📊 Analytics | Per-user watch history + platform-wide admin summary |
+| 🛡️ Production Security | Helmet, rate limiting, CORS, input validation |
+| ⚡ Vercel-ready | One-click deploy with `Vercel.json` |
+
+---
+
+## 🗂️ Project Structure
 
 ```
-gateplay-fullstack/
+gateplay/
 ├── server/
-│   ├── index.js                  ← Express app entry point
+│   ├── index.js              ← Express app (security, rate-limit, routes)
 │   ├── db/
-│   │   └── pool.js               ← PostgreSQL connection pool
+│   │   └── pool.js           ← PostgreSQL connection pool
 │   ├── middleware/
-│   │   ├── auth.js               ← Clerk JWT verification + requirePremium
-│   │   └── logger.js             ← Content access logger
+│   │   ├── auth.js           ← requireAuth + requirePremium
+│   │   └── logger.js         ← Non-blocking access logging
 │   └── routes/
-│       ├── auth.js               ← GET /api/auth/me
-│       ├── movies.js             ← GET /api/movies/* + POST /:slug/play
-│       ├── payment.js            ← POST /api/payment/upgrade
-│       └── logs.js               ← GET /api/logs/my + /admin/summary
+│       ├── auth.js           ← GET /api/auth/me, DELETE /api/auth/me
+│       ├── movies.js         ← GET /api/movies/* + POST /:slug/play
+│       ├── payment.js        ← POST /api/payment/upgrade + history
+│       └── logs.js           ← GET /api/logs/my + /admin/summary
 ├── public/
-│   ├── index.html                ← Frontend (served by Express)
-│   └── styles.css
-├── schema.sql                    ← ⭐ Run this in Supabase SQL Editor FIRST
-├── .env
+│   ├── index.html            ← Single-page frontend
+│   ├── styles.css            ← Dark-mode design system
+│   └── app.js               ← Vanilla JS client (Clerk + API)
+├── schema.sql                ← ⭐ Run this in Supabase FIRST
+├── .env.example              ← Copy → .env and fill in values
+├── Vercel.json               ← Vercel deployment config
 └── package.json
 ```
 
 ---
 
-## ⚙️ Setup Instructions
+## ⚙️ Local Setup
 
-### Step 1 — Run the SQL schema in Supabase
-
-1. Go to [supabase.com](https://supabase.com) → your project → **SQL Editor**
-2. Click **New Query**
-3. Copy and paste the entire contents of `schema.sql`
-4. Click **Run**
-
-This creates:
-- `users` table (clerk_id, email, role: free/premium)
-- `movies` table (pre-seeded with 12 movies)
-- `access_logs` table (every play event)
-- `payments` table (simulated payment records)
-- `premium_access_summary` view
-
-### Step 2 — Install dependencies
+### 1 — Clone & install
 
 ```bash
+git clone https://github.com/adtyaraj4/gateplay.git
+cd gateplay
 npm install
 ```
 
-### Step 3 — Configure environment
-
-The `.env` file is already configured:
-
-```env
-PORT=5000
-DATABASE_URL=postgresql://postgres:...@db.xxx.supabase.co:5432/postgres
-CLERK_PUBLISHABLE_KEY=pk_test_...
-CLERK_SECRET_KEY=sk_test_...
-```
-
-### Step 4 — Start the server
+### 2 — Configure environment
 
 ```bash
-# Development (with auto-restart)
+cp .env.example .env
+```
+
+Edit `.env` with your real keys (see table below).
+
+### 3 — Set up Supabase
+
+1. Create a project at [supabase.com](https://supabase.com)
+2. Go to **SQL Editor → New Query**
+3. Paste the entire contents of `schema.sql` and click **Run**
+
+This creates the `users`, `movies`, `access_logs`, and `payments` tables, plus seeds 12 movies.
+
+### 4 — Configure Clerk
+
+1. Create an app at [clerk.com](https://clerk.com)
+2. Copy your **Publishable Key** and **Secret Key** into `.env`
+3. In `public/index.html`, replace `__CLERK_PUBLISHABLE_KEY__` with your key
+
+### 5 — Start
+
+```bash
+# Development (auto-restart on save)
 npm run dev
 
 # Production
 npm start
 ```
 
-### Step 5 — Open the app
+Visit → **http://localhost:5000**
 
-Visit: **http://localhost:5000**
+---
+
+## 🔑 Environment Variables
+
+| Variable | Where to find it |
+|---|---|
+| `DATABASE_URL` | Supabase → Settings → Database → URI |
+| `CLERK_PUBLISHABLE_KEY` | Clerk dashboard → API Keys |
+| `CLERK_SECRET_KEY` | Clerk dashboard → API Keys |
+| `PORT` | Optional, defaults to `5000` |
+| `ALLOWED_ORIGINS` | Optional, comma-separated CORS origins |
 
 ---
 
@@ -86,114 +115,106 @@ All routes are prefixed with `/api`.
 ### Auth
 
 | Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/auth/me` | ✅ Required | Returns current user + role from DB |
-| DELETE | `/api/auth/me` | ✅ Required | Resets account to free tier |
+|---|---|---|---|
+| `GET` | `/auth/me` | ✅ | Current user + role |
+| `DELETE` | `/auth/me` | ✅ | Reset account to free |
 
 ### Movies
 
 | Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/movies/all` | Optional | All movies (locked field set per role) |
-| GET | `/api/movies/free` | None | Free movies only |
-| GET | `/api/movies/premium` | ✅ + Premium | Premium movies only |
-| POST | `/api/movies/:slug/play` | ✅ Required | Play a movie. Logs access to DB. Blocks free users on premium content. |
+|---|---|---|---|
+| `GET` | `/movies/all` | Optional | All movies (locks premium for free users) |
+| `GET` | `/movies/free` | None | Free movies only |
+| `GET` | `/movies/premium` | ✅ + Premium | Premium movies only |
+| `POST` | `/movies/:slug/play` | ✅ | Play + log access |
 
 ### Payment
 
 | Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/payment/upgrade` | ✅ Required | Upgrade to Premium (simulated). Body: `{ plan, amount }` |
-| GET | `/api/payment/history` | ✅ Required | User's payment history |
+|---|---|---|---|
+| `POST` | `/payment/upgrade` | ✅ | Upgrade to premium |
+| `GET` | `/payment/history` | ✅ | Payment history |
+
+**Upgrade body:**
+```json
+{ "plan": "monthly", "amount": 9.99 }
+```
 
 ### Logs
 
 | Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/logs/my` | ✅ Required | Current user's watch history |
-| GET | `/api/logs/admin/summary` | ✅ Required | Platform analytics summary |
+|---|---|---|---|
+| `GET` | `/logs/my` | ✅ | Watch history (supports `?limit=&offset=`) |
+| `GET` | `/logs/admin/summary` | ✅ | Platform analytics |
 
 ### Other
 
 | Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/health` | DB health check |
+|---|---|---|
+| `GET` | `/health` | DB health check |
 
 ---
 
 ## 🔐 Authentication Flow
 
 ```
-Browser                  Express Server              Supabase DB
-  │                           │                           │
-  │── Clerk sign-in ─────────►│                           │
-  │◄── Clerk JWT token ───────│                           │
-  │                           │                           │
-  │── GET /api/auth/me ───────►│                           │
-  │    Authorization: Bearer  │── Clerk.verifyToken() ──► │
-  │                           │◄── valid payload ─────────│
-  │                           │── upsert user row ───────►│
-  │                           │◄── user { role } ─────────│
-  │◄── { user, role } ────────│                           │
+Browser          Express Server         Supabase DB
+  │                    │                     │
+  │── Clerk sign-in ──►│                     │
+  │◄─ JWT token ───────│                     │
+  │                    │                     │
+  │── API request ────►│                     │
+  │   Bearer <token>   │── verifyToken() ───►│
+  │                    │◄─ valid payload ─────│
+  │                    │── upsert user ──────►│
+  │                    │◄─ { id, role } ──────│
+  │◄─ response ────────│                     │
 ```
-
-1. User signs in via Clerk (Google / Email)
-2. Clerk issues a signed JWT
-3. Frontend includes JWT as `Authorization: Bearer <token>` on every API call
-4. Backend verifies JWT with `Clerk.verifyToken()`
-5. User is auto-created in Supabase `users` table on first login
-6. User role (`free`/`premium`) is stored in Supabase
 
 ---
 
 ## 🛡️ Middleware
 
 ### `requireAuth`
-- Extracts Bearer token from `Authorization` header
-- Verifies with Clerk SDK
-- Upserts user into `users` table
-- Attaches `req.auth` and `req.dbUser` to the request
-- Returns **401** if no/invalid token
+Verifies Clerk JWT → upserts user into DB → attaches `req.auth` & `req.dbUser`. Returns **401** on failure.
 
 ### `requirePremium`
-- Runs after `requireAuth`
-- Checks `req.dbUser.role === 'premium'`
-- Returns **403** with upgrade hint if not premium
+Runs after `requireAuth`. Checks `req.dbUser.role === 'premium'`. Returns **403** with `{ upgrade: true }` hint.
 
 ### `logContentAccess`
-- Called after a successful `/play` request
-- Inserts a row into `access_logs` with user, movie, IP, user-agent, timestamp
-- Never crashes the request (silent error handling)
+Fire-and-forget INSERT into `access_logs`. Never crashes the request.
 
 ---
 
-## 📊 HTTP Status Codes Used
+## 📊 Status Codes
 
 | Code | Meaning |
-|------|---------|
+|---|---|
 | 200 | Success |
-| 400 | Invalid input (bad plan, amount mismatch) |
-| 401 | Not authenticated (no/invalid token) |
-| 403 | Forbidden (free user accessing premium content) |
-| 404 | Movie not found |
-| 409 | Conflict (already premium) |
-| 500 | Internal server error |
-| 503 | Service unavailable (DB disconnected) |
+| 400 | Invalid input |
+| 401 | Not authenticated |
+| 403 | Premium required |
+| 404 | Not found |
+| 409 | Already premium |
+| 503 | Database unavailable |
 
 ---
 
-## 🎭 User Flow
+## 🚀 Deploy to Vercel
 
+```bash
+npm i -g vercel
+vercel
 ```
-1. Visit http://localhost:5000
-2. Click "Sign In" → Clerk modal opens
-3. Sign up / Sign in with email or Google
-4. JWT synced → backend creates user (role: 'free')
-5. Free movies → click → plays instantly + logs access
-6. Premium movies → click → "Upgrade to Premium" prompt
-7. Click "Upgrade Now" → payment modal (enter any card values)
-8. Click "Confirm & Pay" → POST /api/payment/upgrade
-9. Backend: records payment + sets role = 'premium' in Supabase
-10. Frontend: all premium locks removed
-11. Premium movies → click → plays + logs premium access
-```
+
+Add all environment variables in the Vercel dashboard → Settings → Environment Variables.
+
+---
+
+## 🤝 Contributing
+
+Pull requests are welcome. Please open an issue first for major changes.
+
+## 📄 License
+
+[MIT](LICENSE)
