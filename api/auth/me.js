@@ -1,27 +1,43 @@
-import { createClient } from '@supabase/supabase-js';
-import { getAuth } from '@clerk/nextjs/server';
-import Clerk from '@clerk/clerk-sdk-node';
+const { createClient } = require('@supabase/supabase-js');
+const { clerkClient, createClerkClient } = require('@clerk/clerk-sdk-node');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
 
-export default async function handler(req, res) {
-  const { userId } = getAuth(req);
-  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+module.exports = async function handler(req, res) {
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.replace('Bearer ', '');
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
 
-  const clerkUser = await Clerk.users.getUser(userId);
-  const email = clerkUser.emailAddresses[0]?.emailAddress || '';
-  const name  = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ');
+  let userId;
+  try {
+    const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+    const payload = await clerk.verifyToken(token);
+    userId = payload.sub;
+  } catch {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
 
-  // Upsert user on every login — creates row if first time
+  // Check if user exists
+  const { data: existing } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', userId)
+    .single();
+
+  if (existing) {
+    return res.json({ user: existing });
+  }
+
+  // New user — insert with free role
   const { data, error } = await supabase
     .from('users')
-    .upsert({ id: userId, email, name }, { onConflict: 'id', ignoreDuplicates: false })
+    .insert({ id: userId, role: 'free' })
     .select()
     .single();
 
   if (error) return res.status(500).json({ error: error.message });
   res.json({ user: data });
-}
+};
