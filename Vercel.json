@@ -2,14 +2,27 @@
   "version": 2,
   "builds": [
     {
-      "src": "server/index.js",
+      "src": "public/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "api/**/*.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "server/index.js"
+      "dest": "/public/$1"
     }
   ]
 }
+
+
+SUPABASE_URL=https://jxelwpncnligbnjdowva.supabase.co
+SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4ZWx3cG5jbmxpZ2JuamRvd3ZhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzA2NDUxNywiZXhwIjoyMDg4NjQwNTE3fQ.rdVDetd6nh2iWM5miJzGdZPEXL4FdaFAQX5ZZKODRq0
+CLERK_SECRET_KEY=sk_test_igGrtVIpwSgC65rm4BfLkNDLLrb1boaCJSamStwdaa
