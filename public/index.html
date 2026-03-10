@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GatePlay — You Deserve Better Story</title>
+<script
+  async
+  crossorigin="anonymous"
+  data-clerk-publishable-key="pk_test_ZXRlcm5hbC1rb2RpYWstNzIuY2xlcmsuYWNjb3VudHMuZGV2JA"
+  src="https://eternal-kodiak-72.clerk.accounts.dev/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
+  type="text/javascript">
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">GATE<span>PLAY</span></div>
+  <div class="nav-links">
+    <a href="javascript:void(0)" onclick="openMoviesPanel(event)">Movie</a>
+    <a href="#">TV Show</a>
+    <a href="#">Originals</a>
+  </div>
+  <div class="nav-right">
+    <div id="nav-guest" class="nav-user" style="cursor:pointer" onclick="openModal('login')">
+      <div class="avatar" style="background:var(--gray)">?</div>
+      <span>Sign In</span>
+    </div>
+    <div id="nav-user-info" class="nav-user" style="display:none;cursor:pointer;position:relative;gap:10px" onclick="toggleUserMenu()">
+      <div class="avatar" id="nav-avatar">?</div>
+      <span id="nav-name">User</span>
+      <span id="nav-role-badge" style="font-size:9px;padding:3px 8px;border-radius:2px;margin-left:2px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;display:none;animation:badgePop 0.4s cubic-bezier(0.34,1.56,0.64,1) both"></span>
+      <span style="font-size:10px;color:rgba(245,245,245,0.35);margin-left:2px;transition:transform 0.2s" id="nav-chevron">▾</span>
+    </div>
+    <button id="nav-logout-btn" onclick="logout()" style="display:none;background:none;border:1px solid rgba(232,25,44,0.35);color:rgba(232,25,44,0.8);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;padding:6px 14px;cursor:pointer;transition:all 0.2s;text-transform:uppercase"
+      onmouseenter="this.style.background='rgba(232,25,44,0.12)';this.style.borderColor='rgba(232,25,44,0.7)';this.style.color='#E8192C'"
+      onmouseleave="this.style.background='none';this.style.borderColor='rgba(232,25,44,0.35)';this.style.color='rgba(232,25,44,0.8)'">
+      Sign Out
+    </button>
+  </div>
+</nav>
+
+<!-- User dropdown menu -->
+<div id="user-menu" style="display:none;opacity:0;pointer-events:none;position:fixed;top:64px;right:32px;
+  background:#111;border:1px solid rgba(255,255,255,0.1);border-top:2px solid var(--red);
+  padding:6px 0;min-width:220px;z-index:500;box-shadow:0 20px 60px rgba(0,0,0,0.8);
+  transform:translateY(-8px);transition:opacity 0.2s ease,transform 0.2s ease;"
+  onmouseenter="cancelCloseUserMenu()" onmouseleave="scheduleCloseUserMenu()">
+  <div style="padding:14px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.07)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+      <div id="menu-avatar-lg" style="width:34px;height:34px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0"></div>
+      <div>
+        <div id="menu-name-lg" style="font-size:13px;font-weight:600;color:#f5f5f5;line-height:1.2"></div>
+        <div id="menu-email" style="font-size:11px;color:rgba(245,245,245,0.4);margin-top:1px"></div>
+      </div>
+    </div>
+    <div id="menu-role" style="display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border-radius:2px;background:rgba(232,25,44,0.1);color:var(--red);border:1px solid rgba(232,25,44,0.2)"></div>
+  </div>
+  <div style="padding:4px 0">
+    <button onclick="closeUserMenu();openMoviesPanel(event)" style="width:100%;text-align:left;padding:10px 18px;background:none;border:none;color:rgba(245,245,245,0.75);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background 0.15s"
+      onmouseenter="this.style.background='rgba(255,255,255,0.05)'" onmouseleave="this.style.background='none'">
+      <span style="font-size:14px;width:18px;text-align:center">🎬</span> Browse Movies
+    </button>
+    <button id="menu-upgrade-btn" onclick="closeUserMenu();openUpgradeModal()" style="width:100%;text-align:left;padding:10px 18px;background:none;border:none;color:rgba(245,197,24,0.85);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background 0.15s"
+      onmouseenter="this.style.background='rgba(245,197,24,0.06)'" onmouseleave="this.style.background='none'">
+      <span style="font-size:14px;width:18px;text-align:center">👑</span> Upgrade to Premium
+    </button>
+  </div>
+  <div style="height:1px;background:rgba(255,255,255,0.07);margin:2px 0"></div>
+  <div style="padding:4px 0">
+    <button onclick="logout()" style="width:100%;text-align:left;padding:10px 18px;background:none;border:none;color:rgba(232,25,44,0.6);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background 0.15s"
+      onmouseenter="this.style.background='rgba(232,25,44,0.07)'" onmouseleave="this.style.background='none'">
+      <span style="font-size:14px;width:18px;text-align:center">→</span> Sign Out
+    </button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-poster-grid">
+    <div class="poster p1"><div class="poster-inner"><span>FLOW</span></div></div>
+    <div class="poster p2"><div class="poster-inner"><span>ATLAS</span></div></div>
+    <div class="poster p3"><div class="poster-inner"><span>PITT</span></div></div>
+    <div class="poster p4"><div class="poster-inner"><span>EDEN</span></div></div>
+    <div class="poster p5"><div class="poster-inner"><span>CAKE</span></div></div>
+    <div class="poster p6"><div class="poster-inner"><span>ASTRA</span></div></div>
+    <div class="poster p7"><div class="poster-inner"><span>DUNE</span></div></div>
+    <div class="poster p8"><div class="poster-inner"><span>BLADE</span></div></div>
+    <div class="poster p9"><div class="poster-inner"><span>ECHO</span></div></div>
+    <div class="poster p10"><div class="poster-inner"><span>GRID</span></div></div>
+    <div class="poster p11"><div class="poster-inner"><span>NOVA</span></div></div>
+    <div class="poster p12"><div class="poster-inner"><span>FROST</span></div></div>
+    <div class="poster p13"><div class="poster-inner"><span>ROGUE</span></div></div>
+    <div class="poster p14"><div class="poster-inner"><span>RIFT</span></div></div>
+    <div class="poster p15"><div class="poster-inner"><span>LORE</span></div></div>
+    <div class="poster p16"><div class="poster-inner"><span>VALE</span></div></div>
+    <div class="poster p17"><div class="poster-inner"><span>NEON</span></div></div>
+    <div class="poster p18"><div class="poster-inner"><span>SPARK</span></div></div>
+    <div class="poster p19"><div class="poster-inner"><span>IRON</span></div></div>
+    <div class="poster p20"><div class="poster-inner"><span>VOID</span></div></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Curated Cinema</div>
+    <h1>You Deserve<br><em>Better</em><br>Story</h1>
+    <p class="hero-sub">GatePlay was built to help meaningful films and series reach the right audience, without fighting noisy algorithms or trend cycles.</p>
+    <div class="hero-cta">
+      <button class="btn-primary" onclick="openMoviesPanel(event)">Start Watching <span class="arrow">→</span></button>
+      <a href="#" class="btn-ghost">
+        <div class="play-icon">
+          <svg width="12" height="14" viewBox="0 0 12 14" fill="none">
+            <path d="M1 1L11 7L1 13V1Z" fill="white" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        Watch Trailer
+      </a>
+    </div>
+  </div>
+  <div class="scroll-indicator"><div class="scroll-line"></div>Scroll</div>
+</section>
+
+<!-- MOVIES SECTION -->
+<section id="movies-section">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:48px">
+    <div class="movies-panel-heading">Browse <em>the Gate</em></div>
+    <div class="movies-filters">
+      <button class="filter-tab active" onclick="filterMovies('all',this)">All</button>
+      <button class="filter-tab" onclick="filterMovies('free',this)">Free</button>
+      <button class="filter-tab" onclick="filterMovies('premium',this)">Premium</button>
+      <button class="filter-tab" onclick="filterMovies('drama',this)">Drama</button>
+      <button class="filter-tab" onclick="filterMovies('animation',this)">Animation</button>
+      <button class="filter-tab" onclick="filterMovies('sci-fi',this)">Sci-Fi</button>
+    </div>
+  </div>
+  <!-- Skeleton -->
+  <div class="movies-section" id="movies-skeleton">
+    <div class="movies-section-label">Loading</div>
+    <div class="movies-grid">
+      <div class="mv-skeleton"><div class="mv-skeleton-poster"></div><div class="mv-skeleton-info"><div class="sk-line" style="width:70%"></div><div class="sk-line" style="width:45%"></div></div></div>
+      <div class="mv-skeleton"><div class="mv-skeleton-poster"></div><div class="mv-skeleton-info"><div class="sk-line" style="width:80%"></div><div class="sk-line" style="width:50%"></div></div></div>
+      <div class="mv-skeleton"><div class="mv-skeleton-poster"></div><div class="mv-skeleton-info"><div class="sk-line" style="width:60%"></div><div class="sk-line" style="width:40%"></div></div></div>
+      <div class="mv-skeleton"><div class="mv-skeleton-poster"></div><div class="mv-skeleton-info"><div class="sk-line" style="width:75%"></div><div class="sk-line" style="width:55%"></div></div></div>
+      <div class="mv-skeleton"><div class="mv-skeleton-poster"></div><div class="mv-skeleton-info"><div class="sk-line" style="width:65%"></div><div class="sk-line" style="width:48%"></div></div></div>
+      <div class="mv-skeleton"><div class="mv-skeleton-poster"></div><div class="mv-skeleton-info"><div class="sk-line" style="width:72%"></div><div class="sk-line" style="width:42%"></div></div></div>
+    </div>
+  </div>
+  <div class="movies-section" id="section-free" style="display:none">
+    <div class="movies-section-label">Free to Watch</div>
+    <div class="movies-grid" id="grid-free"></div>
+  </div>
+  <div class="movies-section" id="section-premium" style="display:none">
+    <div class="movies-section-label">Premium Collection</div>
+    <div class="movies-grid" id="grid-premium"></div>
+    <div class="upgrade-callout" id="upgrade-callout" style="display:none">
+      <div class="upgrade-callout-icon">🔐</div>
+      <div class="upgrade-callout-text">
+        <h4>Unlock Premium Access</h4>
+        <p>Get unlimited access to our full collection of curated films and GatePlay Originals.</p>
+      </div>
+      <button class="upgrade-callout-btn" onclick="STATE.user ? openUpgradeModal() : openModal('login')">View Plans →</button>
+    </div>
+  </div>
+</section>
+
+<div class="red-divider"></div>
+
+<!-- PRICING -->
+<section class="pricing">
+  <div class="pricing-header reveal">
+    <div class="section-label" style="justify-content:center">Plans</div>
+    <h2>Open the Gate.<br>Choose Your Experience.</h2>
+    <p>Behind every gate is a world of carefully chosen films and series.</p>
+  </div>
+  <div class="pricing-grid reveal">
+    <div class="pricing-card">
+      <div class="shimmer"></div>
+      <div class="price-amount">$7.99</div>
+      <div class="price-per">/ Month</div>
+      <div class="price-desc">Intentional access to curated films and series.</div>
+      <ul class="price-features">
+        <li>Unlimited streaming</li><li>HD quality</li><li>Weekly editor's picks</li>
+        <li>Offline downloads</li><li>Early access to Originals</li><li>Mobile & tablet</li>
+      </ul>
+      <button class="btn-plan btn-plan-ghost" onclick="handlePlanClick('essential',7.99)">Begin with Essential →</button>
+    </div>
+    <div class="pricing-card featured">
+      <div class="shimmer"></div>
+      <div class="price-amount">$12.99</div>
+      <div class="price-per">/ Month</div>
+      <div class="price-desc">The full curated experience.</div>
+      <ul class="price-features">
+        <li>Unlimited streaming</li><li>4K Ultra HD</li><li>Weekly editor's picks</li>
+        <li>Offline downloads</li><li>Early access to Originals</li><li>Mobile & tablet</li>
+      </ul>
+      <button class="btn-plan btn-plan-featured" onclick="handlePlanClick('plus',12.99)">Unlock Full Access →</button>
+    </div>
+    <div class="pricing-card">
+      <div class="shimmer"></div>
+      <div class="price-amount">$18.99</div>
+      <div class="price-per">/ Month</div>
+      <div class="price-desc">For true cinema lovers.</div>
+      <ul class="price-features">
+        <li>Everything in Plus</li><li>4K Ultra HD</li><li>Unlimited devices</li>
+        <li>Exclusive premieres</li><li>Behind-the-scenes</li><li>Creator Q&A</li>
+      </ul>
+      <button class="btn-plan btn-plan-ghost" onclick="handlePlanClick('ultimate',18.99)">Step into Premiere →</button>
+    </div>
+  </div>
+</section>
+
+<div class="red-divider"></div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <span class="logo">GATE<span>PLAY</span></span>
+      <p>Human curation over algorithm noise. Stories chosen to stay with you.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <ul><li><a href="#">Browse</a></li><li><a href="#">Genres</a></li><li><a href="#">Editor's Picks</a></li><li><a href="#">Originals</a></li></ul>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul><li><a href="#">About</a></li><li><a href="#">Press</a></li><li><a href="#">Careers</a></li><li><a href="#">Contact</a></li></ul>
+    </div>
+  </div>
+  <span class="footer-wordmark">GATEPLAY</span>
+  <div class="footer-bottom">
+    <p>© 2025 GatePlay. Demo Project. No real charges.</p>
+    <p>Built with intention, not algorithms.</p>
+  </div>
+</footer>
+
+<!-- UPGRADE / PAYMENT MODAL -->
+<div class="modal-overlay" id="upgrade-modal">
+  <div class="modal-backdrop" id="upgrade-backdrop" onclick="closeUpgradeModal()"></div>
+  <div class="modal-card" style="width:500px">
+    <button class="modal-close" onclick="closeUpgradeModal()">✕</button>
+    <div class="modal-logo">GATE<span>PLAY</span> <span style="font-size:14px;color:rgba(245,197,24,0.8);letter-spacing:2px">PREMIUM</span></div>
+    <!-- Plan selection -->
+    <div id="upgrade-view-select">
+      <div style="text-align:center;margin-bottom:24px">
+        <div class="section-label" style="justify-content:center;margin-bottom:8px">Choose Your Plan</div>
+        <p style="font-size:13px;color:rgba(245,245,245,0.5)">Unlock the full GatePlay collection</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div onclick="selectPlan('essential',7.99)" class="plan-row" onmouseenter="this.style.borderColor='rgba(232,25,44,0.3)';this.style.background='rgba(232,25,44,0.04)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.08)';this.style.background='rgba(255,255,255,0.02)'">
+          <div><div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px">Essential</div><div style="font-size:12px;color:rgba(245,245,245,0.45);margin-top:2px">HD · 1 screen · Full library</div></div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px">$7.99<span style="font-size:13px;color:rgba(245,245,245,0.4)">/mo</span></div>
+        </div>
+        <div onclick="selectPlan('plus',12.99)" class="plan-row featured-plan" onmouseenter="this.style.borderColor='rgba(232,25,44,0.6)'" onmouseleave="this.style.borderColor='rgba(232,25,44,0.3)'">
+          <div style="position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--red);font-size:9px;font-weight:700;letter-spacing:2px;padding:3px 14px">MOST POPULAR</div>
+          <div><div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px">Plus</div><div style="font-size:12px;color:rgba(245,245,245,0.45);margin-top:2px">4K · 2 screens · Originals + downloads</div></div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px">$12.99<span style="font-size:13px;color:rgba(245,245,245,0.4)">/mo</span></div>
+        </div>
+        <div onclick="selectPlan('ultimate',18.99)" class="plan-row" onmouseenter="this.style.borderColor='rgba(232,25,44,0.3)';this.style.background='rgba(232,25,44,0.04)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.08)';this.style.background='rgba(255,255,255,0.02)'">
+          <div><div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px">Ultimate</div><div style="font-size:12px;color:rgba(245,245,245,0.45);margin-top:2px">4K · 4 screens · All features + family</div></div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px">$18.99<span style="font-size:13px;color:rgba(245,245,245,0.4)">/mo</span></div>
+        </div>
+      </div>
+    </div>
+    <!-- Payment form -->
+    <div id="upgrade-view-payment" style="display:none">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+        <button onclick="document.getElementById('upgrade-view-select').style.display='';document.getElementById('upgrade-view-payment').style.display='none'" style="background:none;border:none;color:rgba(245,245,245,0.45);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;letter-spacing:1px;padding:0">← Back</button>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px">
+          <span id="payment-plan-name">Plus</span> — <span id="payment-plan-price" style="color:var(--red)">$12.99/mo</span>
+        </div>
+      </div>
+      <!-- Card preview -->
+      <div style="background:linear-gradient(135deg,#1a1a1a 0%,#2a1a1a 50%,#1a1a2a 100%);border:1px solid rgba(232,25,44,0.2);border-radius:12px;padding:20px 24px;margin-bottom:20px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;right:0;width:160px;height:160px;background:radial-gradient(circle,rgba(232,25,44,0.08) 0%,transparent 70%);pointer-events:none"></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:3px;color:rgba(245,245,245,0.4)">GATEPLAY PREMIUM</div>
+          <div id="card-network-logo" style="font-size:11px;font-weight:700;min-width:48px;text-align:right"></div>
+        </div>
+        <div id="card-preview-number" style="font-family:'Courier New',monospace;font-size:17px;letter-spacing:3px;color:rgba(245,245,245,0.8);margin-bottom:14px">•••• •••• •••• ••••</div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end">
+          <div>
+            <div style="font-size:9px;letter-spacing:2px;color:rgba(245,245,245,0.3);margin-bottom:3px">CARD HOLDER</div>
+            <div id="card-preview-name" style="font-size:12px;letter-spacing:1px;color:rgba(245,245,245,0.7);text-transform:uppercase">YOUR NAME</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:9px;letter-spacing:2px;color:rgba(245,245,245,0.3);margin-bottom:3px">EXPIRES</div>
+            <div id="card-preview-exp" style="font-size:12px;letter-spacing:1px;color:rgba(245,245,245,0.7);font-family:'Courier New',monospace">MM / YY</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="field-group">
+          <div class="field-label">Cardholder Name</div>
+          <div class="field-input-wrap">
+            <input class="field-input" id="card-name" type="text" placeholder="John Smith"
+              oninput="document.getElementById('card-preview-name').textContent=this.value.toUpperCase()||'YOUR NAME'">
+            <span class="field-icon">👤</span>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Card Number</div>
+          <div class="field-input-wrap">
+            <input class="field-input" id="card-number" type="text" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCardNumber(this)" inputmode="numeric">
+            <span class="field-icon" id="card-type-icon" style="font-size:18px">💳</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="field-group">
+            <div class="field-label">Expiry Date</div>
+            <div class="field-input-wrap">
+              <input class="field-input" id="card-exp" type="text" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)" onkeydown="handleExpiryKeydown(this,event)" inputmode="numeric">
+              <span class="field-icon">📅</span>
+            </div>
+          </div>
+          <div class="field-group">
+            <div class="field-label">CVC / CVV</div>
+            <div class="field-input-wrap">
+              <input class="field-input" id="card-cvc" type="password" placeholder="•••" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'').slice(0,4)">
+              <span class="field-icon">🔐</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:16px;padding:10px 0;border-top:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05)">
+          <span style="font-size:11px;color:rgba(245,245,245,0.3)">🔒 256-bit SSL</span>
+          <div style="width:1px;height:14px;background:rgba(255,255,255,0.1)"></div>
+          <span style="font-size:11px;color:rgba(245,245,245,0.3)">🛡 Secure Simulation</span>
+          <div style="width:1px;height:14px;background:rgba(255,255,255,0.1)"></div>
+          <span style="font-size:11px;color:rgba(245,245,245,0.3)">✅ No real charge</span>
+        </div>
+        <button class="btn-submit" id="pay-btn" onclick="submitPayment()">
+          🔒 Confirm & Pay <span id="pay-btn-amount">$12.99</span> →
+        </button>
+      </div>
+    </div>
+    <!-- Success (just upgraded) -->
+    <div id="upgrade-view-success" style="display:none;text-align:center;padding:16px 0">
+      <div style="font-size:56px;margin-bottom:16px">🎉</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;margin-bottom:8px">Welcome to Premium!</div>
+      <p style="color:rgba(245,245,245,0.5);font-size:14px;margin-bottom:28px">All gates are now open. Enjoy your curated collection.</p>
+      <button class="btn-primary" onclick="closeUpgradeModal();setTimeout(()=>document.getElementById('movies-section').scrollIntoView({behavior:'smooth'}),200)" style="margin:0 auto">
+        Browse All Movies <span class="arrow">→</span>
+      </button>
+    </div>
+    <!-- Already premium -->
+    <div id="upgrade-view-already" style="display:none;text-align:center;padding:20px 0 8px">
+      <div style="font-size:64px;margin-bottom:20px;filter:drop-shadow(0 0 24px rgba(245,197,24,0.4))">👑</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:3px;margin-bottom:10px;background:linear-gradient(135deg,#f5c518,#e8921a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
+        You're Already Premium
+      </div>
+      <p style="color:rgba(245,245,245,0.5);font-size:14px;line-height:1.6;margin-bottom:8px">
+        Your membership is active and all content is unlocked.
+      </p>
+      <div id="already-premium-email" style="font-size:12px;color:rgba(245,197,24,0.5);letter-spacing:1px;margin-bottom:32px"></div>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button class="btn-primary" onclick="closeUpgradeModal();setTimeout(()=>document.getElementById('movies-section').scrollIntoView({behavior:'smooth'}),200)" style="margin:0">
+          Browse All Movies <span class="arrow">→</span>
+        </button>
+        <button onclick="closeUpgradeModal()" style="background:none;border:1px solid rgba(255,255,255,0.12);color:rgba(245,245,245,0.5);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:12px 24px;cursor:pointer;transition:all 0.2s"
+          onmouseenter="this.style.borderColor='rgba(255,255,255,0.25)';this.style.color='rgba(245,245,245,0.8)'"
+          onmouseleave="this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='rgba(245,245,245,0.5)'">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH MODAL (Clerk) -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal-backdrop" id="modalBackdrop" onclick="closeModal()"></div>
+  <div class="modal-card" id="modalCard" style="padding:0;overflow:hidden;min-height:unset;background:transparent;border:none;box-shadow:none;">
+    <div id="clerk-modal-mount" style="display:flex;align-items:center;justify-content:center;min-height:560px;"></div>
+  </div>
+</div>
+
+<style>
+  .plan-row {
+    padding: 20px 24px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.02);
+    cursor: pointer;
+    transition: border-color 0.3s, background 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .featured-plan {
+    border-color: rgba(232,25,44,0.3) !important;
+    background: rgba(232,25,44,0.06) !important;
+    position: relative;
+  }
+</style>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  GatePlay — Frontend JavaScript
+//  Clerk JWT auth → Express/Supabase backend
+// ═══════════════════════════════════════════════════════════════
+
+const API = '';   // same origin — Express serves both
+
+// ── State ─────────────────────────────────────────────────────
+const STATE = { user: null, token: null };
+
+let allMoviesData = [];
+let moviesLoaded  = false;
+
+// ── API helper ────────────────────────────────────────────────
+async function apiFetch(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json', ...opts.headers };
+  try {
+    if (window.Clerk?.session) {
+      const t = await window.Clerk.session.getToken();
+      if (t) headers['Authorization'] = `Bearer ${t}`;
+    }
+  } catch {}
+  try {
+    const res  = await fetch(API + path, { ...opts, headers });
+    let data = {};
+    try { data = await res.json(); } catch {}
+    return { ok: res.ok, status: res.status, data };
+  } catch (err) {
+    return { ok: false, status: 0, data: { error: 'Network error' } };
+  }
+}
+
+// ── Nav UI ─────────────────────────────────────────────────────
+function updateNavUI() {
+  const guest     = document.getElementById('nav-guest');
+  const userInfo  = document.getElementById('nav-user-info');
+  const logoutBtn = document.getElementById('nav-logout-btn');
+  const navName   = document.getElementById('nav-name');
+  const navAvatar = document.getElementById('nav-avatar');
+  const roleBadge = document.getElementById('nav-role-badge');
+  const menuEmail = document.getElementById('menu-email');
+  const menuRole  = document.getElementById('menu-role');
+  const menuAvatarLg = document.getElementById('menu-avatar-lg');
+  const menuNameLg   = document.getElementById('menu-name-lg');
+  const upgradeBtn   = document.getElementById('menu-upgrade-btn');
+
+  if (STATE.user) {
+    guest.style.display    = 'none';
+    userInfo.style.display = 'flex';
+    if (logoutBtn) logoutBtn.style.display = 'block';
+
+    const displayName = STATE.user.name || STATE.user.email?.split('@')[0] || 'User';
+    const initials    = displayName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase() || '?';
+
+    navAvatar.textContent = initials;
+    navName.textContent   = displayName;
+    if (menuEmail)    menuEmail.textContent    = STATE.user.email || '';
+    if (menuAvatarLg) menuAvatarLg.textContent = initials;
+    if (menuNameLg)   menuNameLg.textContent   = displayName;
+
+    const isPremium = STATE.user.role === 'premium';
+    if (menuRole) {
+      menuRole.textContent = isPremium ? '👑 Premium Member' : 'Free Plan';
+      menuRole.style.background = isPremium ? 'rgba(245,197,24,0.12)' : 'rgba(255,255,255,0.05)';
+      menuRole.style.color      = isPremium ? 'rgba(245,197,24,0.9)'  : 'rgba(245,245,245,0.4)';
+      menuRole.style.border     = isPremium ? '1px solid rgba(245,197,24,0.25)' : '1px solid rgba(255,255,255,0.08)';
+    }
+    if (isPremium) {
+      roleBadge.style.display    = 'inline';
+      roleBadge.textContent      = '👑 PRO';
+      roleBadge.style.background = 'rgba(245,197,24,0.15)';
+      roleBadge.style.color      = 'rgba(245,197,24,0.9)';
+      roleBadge.style.border     = '1px solid rgba(245,197,24,0.3)';
+      if (upgradeBtn) upgradeBtn.style.display = 'none';
+    } else {
+      roleBadge.style.display = 'none';
+      if (upgradeBtn) upgradeBtn.style.display = 'flex';
+    }
+  } else {
+    guest.style.display    = 'flex';
+    userInfo.style.display = 'none';
+    if (logoutBtn) logoutBtn.style.display = 'none';
+    closeUserMenu();
+  }
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+function showToast(msg, type = 'info') {
+  let t = document.getElementById('gp-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'gp-toast';
+    t.style.cssText = 'position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a1a;border:1px solid rgba(255,255,255,0.1);border-left:3px solid var(--red);padding:14px 28px;font-size:13px;white-space:nowrap;opacity:0;transition:all 0.4s cubic-bezier(0.34,1.2,0.64,1);z-index:9999;pointer-events:none;font-family:"DM Sans",sans-serif;color:#f5f5f5';
+    document.body.appendChild(t);
+  }
+  t.style.borderLeftColor = type === 'success' ? '#22c55e' : type === 'error' ? '#E8192C' : 'rgba(245,197,24,0.8)';
+  t.textContent = msg;
+  clearTimeout(t._t);
+  requestAnimationFrame(() => { t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)'; });
+  t._t = setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(20px)'; }, 3500);
+}
+
+// ── User menu ─────────────────────────────────────────────────
+let _menuCloseTimer = null;
+function toggleUserMenu() {
+  const m = document.getElementById('user-menu');
+  if (m.style.opacity === '1') closeUserMenu(); else openUserMenu();
+}
+function openUserMenu() {
+  cancelCloseUserMenu();
+  const m = document.getElementById('user-menu');
+  m.style.display = 'block';
+  requestAnimationFrame(() => { m.style.opacity='1'; m.style.transform='translateY(0)'; m.style.pointerEvents='auto'; });
+  const c = document.getElementById('nav-chevron');
+  if (c) c.style.transform = 'rotate(180deg)';
+}
+function closeUserMenu() {
+  cancelCloseUserMenu();
+  const m = document.getElementById('user-menu');
+  m.style.opacity='0'; m.style.transform='translateY(-8px)'; m.style.pointerEvents='none';
+  setTimeout(() => { if (m.style.opacity==='0') m.style.display='none'; }, 200);
+  const c = document.getElementById('nav-chevron');
+  if (c) c.style.transform = 'rotate(0deg)';
+}
+function scheduleCloseUserMenu() { _menuCloseTimer = setTimeout(closeUserMenu, 120); }
+function cancelCloseUserMenu() { if (_menuCloseTimer) { clearTimeout(_menuCloseTimer); _menuCloseTimer = null; } }
+document.addEventListener('click', e => {
+  if (!e.target.closest('#user-menu') && !e.target.closest('#nav-user-info')) closeUserMenu();
+});
+
+// ── Auth modal (Clerk) ────────────────────────────────────────
+const modal = document.getElementById('authModal');
+let _clerkComponent = null;
+
+async function openModal(tab = 'login') {
+  document.body.style.overflow = 'hidden';
+  modal.classList.add('open');
+  if (!window.Clerk) {
+    await new Promise(r => { window.addEventListener('clerk:ready', r, {once:true}); setTimeout(r, 3000); });
+  }
+  const mountEl = document.getElementById('clerk-modal-mount');
+  if (!mountEl) return;
+  try {
+    if (_clerkComponent) { try { _clerkComponent.unmount(); } catch {} _clerkComponent = null; }
+    mountEl.innerHTML = '';
+    const appearance = {
+      variables: { colorPrimary:'#E8192C', colorBackground:'#111111', colorText:'#f5f5f5', colorInputBackground:'#1a1a1a', borderRadius:'4px', fontFamily:"'DM Sans', sans-serif" },
+      elements: {
+        card:{ background:'#111111', border:'1px solid rgba(232,25,44,0.25)', borderTop:'2px solid #E8192C', boxShadow:'0 8px 48px rgba(0,0,0,0.7)', borderRadius:'4px' },
+        headerTitle:{ color:'#f5f5f5', fontFamily:"'Bebas Neue', sans-serif", fontSize:'22px', letterSpacing:'3px' },
+        formButtonPrimary:{ background:'#E8192C', fontWeight:'700', letterSpacing:'1.5px', textTransform:'uppercase', fontSize:'12px' },
+        footerActionLink:{ color:'#E8192C' },
+        formFieldInput:{ background:'#1a1a1a', borderColor:'rgba(255,255,255,0.1)', color:'#f5f5f5' },
+        socialButtonsBlockButton:{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', color:'#f5f5f5' },
+      },
+    };
+    if (tab === 'signup') _clerkComponent = window.Clerk.mountSignUp(mountEl, { appearance });
+    else                  _clerkComponent = window.Clerk.mountSignIn(mountEl, { appearance });
+  } catch(e) { console.error('[openModal]', e); }
+}
+
+function closeModal() {
+  document.body.style.overflow = '';
+  modal.classList.remove('open');
+  if (_clerkComponent) { try { _clerkComponent.unmount(); } catch {} _clerkComponent = null; }
+  document.getElementById('clerk-modal-mount').innerHTML = '';
+}
+
+async function logout() {
+  try { if (window.Clerk?.session) await window.Clerk.signOut(); } catch {}
+  STATE.token = null; STATE.user = null;
+  closeUserMenu(); updateNavUI();
+  showToast('You have been signed out.');
+  moviesLoaded = false;
+  fetchAndRenderMovies();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeUpgradeModal(); } });
+
+// ── Movies ────────────────────────────────────────────────────
+const DEMO_MOVIES = [
+  { id:'m001', title:'Vikings',                  genre:'Drama',     year:2013, rating:4.5, type:'free',    duration:'45 min',  poster:'https://image.tmdb.org/t/p/w500/aA9N1B9xyYBxoW3T2h4oBxP0TQK.jpg' },
+  { id:'m002', title:'Breaking Bad',             genre:'Crime',     year:2008, rating:5.0, type:'premium', duration:'47 min',  poster:'https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg' },
+  { id:'m003', title:'The Last of Us',           genre:'Drama',     year:2023, rating:4.8, type:'free',    duration:'55 min',  poster:'https://image.tmdb.org/t/p/w500/uKvVjHNqB5VmOrdxqAt2F7J78ED.jpg' },
+  { id:'m004', title:'Kung Fu Panda 4',          genre:'Animation', year:2024, rating:3.9, type:'premium', duration:'94 min',  poster:'https://image.tmdb.org/t/p/w500/kDp1vUBnMpe8ak4rjgl3cLELqjU.jpg' },
+  { id:'m005', title:'Spider-Man: Spider-Verse', genre:'Animation', year:2018, rating:4.8, type:'free',    duration:'117 min', poster:'https://image.tmdb.org/t/p/w500/iiZZdoQBEYBv6id8su7ImL0oCbD.jpg' },
+  { id:'m006', title:'Migration',                genre:'Animation', year:2023, rating:3.7, type:'premium', duration:'83 min',  poster:'https://image.tmdb.org/t/p/w500/ldfCF9RhR40mppkzmftxapaHeTo.jpg' },
+  { id:'m007', title:'Minions: Rise of Gru',     genre:'Animation', year:2022, rating:3.6, type:'free',    duration:'87 min',  poster:'https://image.tmdb.org/t/p/w500/wKiOkZTd4C8FGXVBHTMFIkMbUf9.jpg' },
+  { id:'m008', title:'House of the Dragon',      genre:'Fantasy',   year:2022, rating:4.5, type:'premium', duration:'60 min',  poster:'https://image.tmdb.org/t/p/w500/z2yahl2uefxDCl0nogcRBstwruJ.jpg' },
+  { id:'m009', title:'Oppenheimer',              genre:'Drama',     year:2023, rating:4.7, type:'premium', duration:'180 min', poster:'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg' },
+  { id:'m010', title:'Avatar: The Way of Water', genre:'Sci-Fi',    year:2022, rating:4.0, type:'free',    duration:'192 min', poster:'https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg' },
+  { id:'m011', title:'Dune: Part Two',           genre:'Sci-Fi',    year:2024, rating:4.6, type:'premium', duration:'166 min', poster:'https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg' },
+  { id:'m012', title:'Wednesday',                genre:'Mystery',   year:2022, rating:4.3, type:'free',    duration:'45 min',  poster:'https://image.tmdb.org/t/p/w500/9PFonBhy4cQy7Jz20NpMygczOkv.jpg' },
+];
+
+async function fetchAndRenderMovies() {
+  document.getElementById('movies-skeleton').style.display = '';
+  document.getElementById('section-free').style.display    = 'none';
+  document.getElementById('section-premium').style.display = 'none';
+  try {
+    const { ok, data } = await apiFetch('/api/movies/all');
+    if (ok && data.movies?.length) { allMoviesData = data.movies; }
+    else throw new Error('fallback');
+  } catch { allMoviesData = DEMO_MOVIES; }
+  renderMovieGrid(allMoviesData);
+  moviesLoaded = true;
+}
+
+function renderMovieGrid(movies) {
+  document.getElementById('movies-skeleton').style.display = 'none';
+  const free = movies.filter(m => m.type === 'free');
+  const prem = movies.filter(m => m.type === 'premium');
+  const fSec = document.getElementById('section-free');
+  const pSec = document.getElementById('section-premium');
+  if (free.length) { fSec.style.display=''; document.getElementById('grid-free').innerHTML = free.map(movieCardHTML).join(''); }
+  else fSec.style.display = 'none';
+  if (prem.length) {
+    pSec.style.display = '';
+    document.getElementById('grid-premium').innerHTML = prem.map(movieCardHTML).join('');
+    document.getElementById('upgrade-callout').style.display = (!STATE.user || STATE.user.role !== 'premium') ? 'flex' : 'none';
+  } else pSec.style.display = 'none';
+}
+
+function movieCardHTML(m) {
+  const locked = m.type === 'premium' && (!STATE.user || STATE.user.role !== 'premium');
+  const lockOverlay = `<div class="mv-lock"><div class="mv-lock-icon">👑</div><div class="mv-lock-label">Premium</div><div class="mv-lock-cta">${STATE.user ? 'Click to upgrade' : 'Sign in to watch'}</div></div>`;
+  const playOverlay = `<div class="mv-play-overlay">▶</div>`;
+  return `
+    <div class="movie-card" data-title="${m.title}" data-type="${m.type}" onclick="handleMovieClick('${m.id}','${m.type}','${(m.title||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">
+      <div class="movie-poster-wrap">
+        <img src="${m.poster}" alt="${m.title}" loading="lazy" onerror="this.parentElement.style.background='linear-gradient(135deg,#1a0a2e,#6b21a8)';this.remove()">
+        <div class="poster-grad"></div>
+        <span class="mv-badge ${m.type === 'premium' ? 'mv-premium' : 'mv-free'}">${m.type === 'premium' ? '👑 Premium' : 'Free'}</span>
+        ${locked ? lockOverlay : playOverlay}
+      </div>
+      <div class="mv-info">
+        <div class="mv-title">${m.title}</div>
+        <div class="mv-meta">
+          <span>${m.genre||'Film'}</span><div class="mv-dot"></div>
+          <span>${m.year||''}</span><div class="mv-dot"></div>
+          <span class="mv-rating">★ ${m.rating||'–'}</span>
+          ${m.duration ? `<div class="mv-dot"></div><span>${m.duration}</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+async function handleMovieClick(id, type, title) {
+  if (!STATE.user) { openModal('login'); showToast('Sign in to watch movies.', 'info'); return; }
+  if (type === 'premium' && STATE.user.role !== 'premium') {
+    showToast('🔒 This is premium content. Upgrade to Premium to watch.', 'error');
+    showUpgradePrompt(title); return;
+  }
+  // Call backend /play endpoint (logs access to DB)
+  const { ok, data } = await apiFetch(`/api/movies/${id}/play`, { method: 'POST' });
+  if (!ok) { showToast(data.error || 'Playback failed.', 'error'); return; }
+  showToast(`🎬 Movie is now playing: ${title}`, 'success');
+  showMoviePlayer(id, title, type);
+}
+
+function showUpgradePrompt(title) {
+  const existing = document.getElementById('upgrade-prompt-toast');
+  if (existing) existing.remove();
+  const el = document.createElement('div');
+  el.id = 'upgrade-prompt-toast';
+  el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:#111;border:1px solid rgba(232,25,44,0.3);border-top:2px solid var(--red);padding:16px 24px;z-index:9998;opacity:0;transition:all 0.4s cubic-bezier(0.34,1.2,0.64,1);font-family:"DM Sans",sans-serif;display:flex;align-items:center;gap:16px;color:#f5f5f5;';
+  el.innerHTML = `
+    <span style="font-size:13px;color:rgba(245,245,245,0.7)">🔒 <strong style="color:#f5f5f5">${title}</strong> requires Premium</span>
+    <button onclick="openUpgradeModal();document.getElementById('upgrade-prompt-toast')?.remove()" style="background:var(--red);border:none;color:#fff;padding:8px 18px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;white-space:nowrap">Upgrade Now</button>
+    <button onclick="this.closest('#upgrade-prompt-toast').remove()" style="background:none;border:none;color:rgba(245,245,245,0.3);font-size:18px;cursor:pointer;padding:0;line-height:1">×</button>`;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => { el.style.opacity='1'; el.style.transform='translateX(-50%) translateY(0)'; });
+  setTimeout(() => { el.style.opacity='0'; el.style.transform='translateX(-50%) translateY(20px)'; setTimeout(() => el.remove(), 400); }, 6000);
+}
+
+function showMoviePlayer(id, title, type) {
+  document.getElementById('movie-player-modal')?.remove();
+  const movie = allMoviesData.find(m => String(m.id) === String(id)) || { title, poster:'', rating:'', genre:'', year:'', duration:'' };
+  const modal = document.createElement('div');
+  modal.id = 'movie-player-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.95);backdrop-filter:blur(12px);font-family:"DM Sans",sans-serif';
+  modal.innerHTML = `
+    <div style="background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);max-width:780px;width:95%;position:relative">
+      <button onclick="document.getElementById('movie-player-modal').remove()" style="position:absolute;top:14px;right:16px;z-index:10;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.15);color:#fff;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
+      <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,#0d0d1a,#1a0a2e,#0d0d0d);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+        ${movie.poster ? `<img src="${movie.poster}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.25;filter:blur(4px)">` : ''}
+        <div style="position:relative;text-align:center">
+          <div style="width:72px;height:72px;border-radius:50%;background:rgba(232,25,44,0.9);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 0 40px rgba(232,25,44,0.5)"><span style="font-size:28px;margin-left:4px">▶</span></div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:#f5f5f5">${movie.title||title}</div>
+          <div style="color:rgba(245,245,245,0.4);font-size:12px;margin-top:8px;letter-spacing:1px">DEMO MODE · No actual video available</div>
+        </div>
+        <div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.1)"><div id="fake-progress" style="height:100%;background:#E8192C;width:0%;transition:width 0.5s"></div></div>
+      </div>
+      <div style="padding:20px 24px 24px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:#f5f5f5">${movie.title||title}</div>
+          <span style="background:${type==='premium'?'rgba(245,197,24,0.15)':'rgba(255,255,255,0.06)'};color:${type==='premium'?'#f5c518':'rgba(245,245,245,0.5)'};border:1px solid ${type==='premium'?'rgba(245,197,24,0.3)':'rgba(255,255,255,0.1)'};padding:3px 10px;font-size:10px;letter-spacing:1.5px;white-space:nowrap">${type==='premium'?'👑 PREMIUM':'FREE'}</span>
+        </div>
+        <div style="display:flex;gap:16px;color:rgba(245,245,245,0.4);font-size:12px">
+          ${movie.genre?`<span>${movie.genre}</span>`:''}${movie.year?`<span>${movie.year}</span>`:''}${movie.rating?`<span>★ ${movie.rating}</span>`:''}${movie.duration?`<span>${movie.duration}</span>`:''}
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  setTimeout(() => { const b = document.getElementById('fake-progress'); if (b) b.style.width='35%'; }, 600);
+}
+
+function filterMovies(filter, btn) {
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  let filtered;
+  switch(filter) {
+    case 'all':     filtered = allMoviesData; break;
+    case 'free':    filtered = allMoviesData.filter(m => m.type==='free'); break;
+    case 'premium': filtered = allMoviesData.filter(m => m.type==='premium'); break;
+    default:        filtered = allMoviesData.filter(m => (m.genre||'').toLowerCase()===filter); break;
+  }
+  renderMovieGrid(filtered);
+}
+
+function openMoviesPanel(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  document.getElementById('movies-section').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ── Upgrade modal ─────────────────────────────────────────────
+let selectedPlan = { name: 'plus', price: 12.99 };
+
+function handlePlanClick(name, price) {
+  if (!STATE.user) { openModal('login'); showToast('Sign in to unlock Premium.', 'info'); return; }
+  if (STATE.user.role === 'premium') { openUpgradeModal(); return; }
+  openUpgradeModal();
+  setTimeout(() => selectPlan(name, price), 120);
+}
+
+function openUpgradeModal() {
+  if (!STATE.user) { openModal('login'); showToast('Sign in to unlock Premium.', 'info'); return; }
+  document.getElementById('upgrade-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Already premium — show the "you already have premium" screen
+  if (STATE.user.role === 'premium') {
+    document.getElementById('upgrade-view-select').style.display  = 'none';
+    document.getElementById('upgrade-view-payment').style.display = 'none';
+    document.getElementById('upgrade-view-success').style.display = 'none';
+    document.getElementById('upgrade-view-already').style.display = '';
+    const emailEl = document.getElementById('already-premium-email');
+    if (emailEl) emailEl.textContent = STATE.user.email || '';
+    return;
+  }
+
+  document.getElementById('upgrade-view-select').style.display  = '';
+  document.getElementById('upgrade-view-payment').style.display = 'none';
+  document.getElementById('upgrade-view-success').style.display = 'none';
+  document.getElementById('upgrade-view-already').style.display = 'none';
+}
+
+function closeUpgradeModal() {
+  document.getElementById('upgrade-modal').classList.remove('open');
+  document.body.style.overflow = '';
+
+  // Reset card fields
+  ['card-name','card-number','card-exp','card-cvc'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  const pn=document.getElementById('card-preview-name'); if(pn) pn.textContent='YOUR NAME';
+  const pnum=document.getElementById('card-preview-number'); if(pnum) pnum.textContent='•••• •••• •••• ••••';
+  const pexp=document.getElementById('card-preview-exp'); if(pexp) pexp.textContent='MM / YY';
+  const logo=document.getElementById('card-network-logo'); if(logo) logo.innerHTML='';
+
+  // Reset pay button — critical: clears the "Processing..." stuck state
+  const btn = document.getElementById('pay-btn');
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = '🔒 Confirm & Pay <span id="pay-btn-amount">$12.99</span> →';
+  }
+
+  // Hide all views — openUpgradeModal will show the correct one
+  document.getElementById('upgrade-view-select').style.display  = 'none';
+  document.getElementById('upgrade-view-payment').style.display = 'none';
+  document.getElementById('upgrade-view-success').style.display = 'none';
+  document.getElementById('upgrade-view-already').style.display = 'none';
+}
+
+function selectPlan(name, price) {
+  selectedPlan = { name, price };
+  document.getElementById('upgrade-view-select').style.display  = 'none';
+  document.getElementById('upgrade-view-payment').style.display = '';
+  document.getElementById('payment-plan-name').textContent  = name.charAt(0).toUpperCase()+name.slice(1);
+  document.getElementById('payment-plan-price').textContent = `$${price}/mo`;
+  document.getElementById('pay-btn-amount').textContent     = `$${price}`;
+}
+
+async function submitPayment() {
+  if (!STATE.user) { closeUpgradeModal(); openModal('login'); return; }
+  const cardName = document.getElementById('card-name')?.value.trim() || '';
+  const cardNum  = document.getElementById('card-number').value.replace(/\s/g,'');
+  const cardExp  = document.getElementById('card-exp').value.trim();
+  const cardCvc  = document.getElementById('card-cvc').value.trim();
+  if (!cardName)           { showToast('Enter the cardholder name.', 'error'); return; }
+  if (cardNum.length < 4)  { showToast('Enter a card number.', 'error'); return; }
+  if (!cardExp)            { showToast('Enter an expiry date.', 'error'); return; }
+  if (cardCvc.length < 3)  { showToast('Enter the CVC.', 'error'); return; }
+
+  const btn = document.getElementById('pay-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:flex;align-items:center;justify-content:center;gap:8px"><span style="width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block"></span> Processing…</span>';
+
+  const { ok, data } = await apiFetch('/api/payment/upgrade', {
+    method: 'POST',
+    body: JSON.stringify({ plan: selectedPlan.name, amount: selectedPlan.price }),
+  });
+
+  if (!ok) {
+    btn.disabled = false;
+    btn.innerHTML = `🔒 Confirm & Pay $${selectedPlan.price} →`;
+    showToast(data.error || 'Payment failed. Try again.', 'error');
+    return;
+  }
+
+  // Update local state
+  STATE.user.role = 'premium';
+  if (data.user) STATE.user = { ...STATE.user, ...data.user };
+  updateNavUI();
+
+  document.getElementById('upgrade-view-payment').style.display = 'none';
+  document.getElementById('upgrade-view-success').style.display = '';
+  showToast('👑 Welcome to Premium! Enjoy all content.', 'success');
+
+  moviesLoaded = false;
+  fetchAndRenderMovies();
+}
+
+// Card formatting
+function formatCardNumber(inp) {
+  const prev = inp.value.length;
+  const raw  = inp.value.replace(/\D/g,'').slice(0,16);
+  const fmt  = raw.match(/.{1,4}/g)?.join(' ') || raw;
+  inp.value  = fmt;
+  const added = fmt.length - prev;
+  inp.setSelectionRange((inp.selectionStart||0)+added, (inp.selectionStart||0)+added);
+  document.getElementById('card-preview-number').textContent = raw.padEnd(16,'•').match(/.{1,4}/g).join(' ');
+  const logo = document.getElementById('card-network-logo');
+  if (/^4/.test(raw))           logo.innerHTML='<span style="color:#1a1aff;font-weight:900;font-size:12px">VISA</span>';
+  else if (/^5[1-5]/.test(raw)) logo.innerHTML='<span style="color:#eb001b;font-weight:900;font-size:12px">MC</span>';
+  else if (/^3[47]/.test(raw))  logo.innerHTML='<span style="color:#007bc1;font-weight:900;font-size:12px">AMEX</span>';
+  else if (/^6/.test(raw))      logo.innerHTML='<span style="color:#ff6600;font-weight:900;font-size:12px">DISC</span>';
+  else                          logo.innerHTML='';
+}
+function formatExpiry(inp) {
+  let d = inp.value.replace(/\D/g,'').slice(0,4);
+  inp.value = d.length > 2 ? d.slice(0,2)+' / '+d.slice(2) : d;
+  const p = document.getElementById('card-preview-exp');
+  if (p) p.textContent = inp.value || 'MM / YY';
+}
+function handleExpiryKeydown(inp, e) {
+  if (e.key==='Backspace') {
+    const v = inp.value;
+    if (v.endsWith(' / ')||v.endsWith(' /')||v.endsWith('/')) {
+      e.preventDefault();
+      inp.value = v.replace(/\s*\/\s*$/,'').slice(0,-1);
+      const p = document.getElementById('card-preview-exp');
+      if (p) p.textContent = inp.value||'MM / YY';
+    }
+  }
+}
+
+// ── Nav scroll ────────────────────────────────────────────────
+const nav = document.querySelector('nav');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 60) { nav.style.background='rgba(10,10,10,0.97)'; nav.style.backdropFilter='blur(12px)'; nav.style.borderBottom='1px solid rgba(255,255,255,0.05)'; }
+  else { nav.style.background='linear-gradient(to bottom, rgba(10,10,10,0.95) 0%, transparent 100%)'; nav.style.backdropFilter='blur(2px)'; nav.style.borderBottom='none'; }
+});
+
+// ── Parallax ──────────────────────────────────────────────────
+const posterGrid = document.querySelector('.hero-poster-grid');
+window.addEventListener('scroll', () => {
+  if (posterGrid) posterGrid.style.transform = `translateY(calc(-50% + ${window.scrollY*0.3}px)) perspective(1000px) rotateY(-12deg)`;
+});
+
+// ── Scroll reveal ─────────────────────────────────────────────
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => observer.observe(el));
+
+// ── Clerk session listener ────────────────────────────────────
+window.addEventListener('load', async () => {
+  try {
+    await window.Clerk?.load();
+
+    const syncUser = async (clerkUser) => {
+      if (!clerkUser) { STATE.user = null; STATE.token = null; updateNavUI(); return; }
+      const appUser = {
+        id:     clerkUser.id,
+        email:  clerkUser.primaryEmailAddress?.emailAddress || '',
+        name:   [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || null,
+        avatar: clerkUser.imageUrl || null,
+        role:   'free',
+      };
+      STATE.user = appUser;
+      STATE.token = '__clerk__';
+      updateNavUI();
+
+      // Fetch real role from our backend
+      const { ok, data } = await apiFetch('/api/auth/me');
+      if (ok && data.user) {
+        STATE.user = { ...appUser, ...data.user };
+        updateNavUI();
+      }
+
+      if (modal.classList.contains('open')) {
+        closeModal();
+        showToast(`Welcome${appUser.name ? ', ' + appUser.name : ''} to GatePlay! 🎬`, 'success');
+      }
+
+      // Reload movies to apply correct lock/unlock state
+      moviesLoaded = false;
+      fetchAndRenderMovies();
+    };
+
+    window.Clerk.addListener(({ user }) => syncUser(user || null));
+
+    if (window.Clerk.user) await syncUser(window.Clerk.user);
+    else updateNavUI();
+
+  } catch(e) { console.error('[Clerk init]', e); updateNavUI(); }
+
+  // Always load movies on page start
+  if (!moviesLoaded) fetchAndRenderMovies();
+});
+</script>
+</body>
+</html>
