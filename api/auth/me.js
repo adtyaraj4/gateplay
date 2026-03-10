@@ -1,14 +1,13 @@
-const { createClient } = require('@supabase/supabase-js');
-const { clerkClient, createClerkClient } = require('@clerk/clerk-sdk-node');
+import { createClient } from '@supabase/supabase-js';
+import { createClerkClient } from '@clerk/clerk-sdk-node';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
 
-module.exports = async function handler(req, res) {
-  const authHeader = req.headers.authorization || '';
-  const token = authHeader.replace('Bearer ', '');
+export default async function handler(req, res) {
+  const token = (req.headers.authorization || '').replace('Bearer ', '');
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
 
   let userId;
@@ -20,16 +19,14 @@ module.exports = async function handler(req, res) {
     return res.status(401).json({ error: 'Invalid token' });
   }
 
-  // Check if user exists
+  // Check if user already exists
   const { data: existing } = await supabase
     .from('users')
     .select('*')
     .eq('id', userId)
     .single();
 
-  if (existing) {
-    return res.json({ user: existing });
-  }
+  if (existing) return res.json({ user: existing });
 
   // New user — insert with free role
   const { data, error } = await supabase
@@ -40,10 +37,4 @@ module.exports = async function handler(req, res) {
 
   if (error) return res.status(500).json({ error: error.message });
   res.json({ user: data });
-};
-
-console.log('ENV CHECK:', {
-  url: process.env.SUPABASE_URL ? 'OK' : 'MISSING',
-  key: process.env.SUPABASE_SERVICE_KEY ? 'OK' : 'MISSING',
-  clerk: process.env.CLERK_SECRET_KEY ? 'OK' : 'MISSING'
-});
+}
