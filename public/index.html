@@ -648,10 +648,8 @@ async function handleMovieClick(id, type, title) {
     showToast('🔒 This is premium content. Upgrade to Premium to watch.', 'error');
     showUpgradePrompt(title); return;
   }
-  // Call backend /play endpoint (logs access to DB)
-  const { ok, data } = await apiFetch(`/api/movies/${id}/play`, { method: 'POST' });
-  if (!ok) { showToast(data.error || 'Playback failed.', 'error'); return; }
-  showToast(`🎬 Movie is now playing: ${title}`, 'success');
+  // Skip the /api/movies/:id/play backend call — show player directly
+  showToast(`🎬 Now playing: ${title}`, 'success');
   showMoviePlayer(id, title, type);
 }
 
